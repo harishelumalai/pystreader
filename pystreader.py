@@ -1,4 +1,13 @@
+#This program will read a ATM statetable and displays it in TreeView with colors(For Screen, State, Number)
+#Still Under development
+#Author: Harish Elumalai
+#Date: 12/19/2016
+#Input file can be provided in the line 189
+
 import sys
+import tkinter as tk
+import tkinter.ttk as ttk
+
 class State:
     def __init__(self, sname, stype, sparamlist):
         self.stname = sname
@@ -55,6 +64,12 @@ stateCount = 0
 stypeCount = 0
 screenCount = 0
 printed = None
+
+RED   = "\033[31m"
+BLUE  = "\033[34m"
+CYAN  = "\033[36m"
+GREEN = "\033[32m"
+RESET = "\033[0m"
 
 def filestackTest():
     global filestack
@@ -175,8 +190,6 @@ def __main__():
     f = "state.tbl"
     curfd = openFile(f)
     statetable = StateTable()
-    #statetable.
-    #while line = getLine() != -1:
     for line in curfd:
         line = line.strip()
         if line != '':
@@ -185,11 +198,10 @@ def __main__():
                     while line[-1] == '\\':
                         line = line.replace('\\', '')
                         line += curfd.readline().strip()
-                #process line here
-                #print(line)
                 process(line)
     curfd.close()
     print("Parsing sucessful!")
+
 #print(statetable.stateList.values())
 
 def writeToCSV(name):
@@ -225,29 +237,126 @@ def getRootState():
             return statetable.stateList[state]
     return None
 
+
+class Begueradj(tk.Frame):
+    '''
+    classdocs
+    '''
+    def __init__(self, parent):
+        '''
+        Constructor
+        '''
+        tk.Frame.__init__(self, parent)
+        self.parent = parent
+        self.initialize_user_interface()
+
+    def initialize_user_interface(self):
+        """Draw a user interface allowing the user to type
+        items and insert them into the treeview
+        """
+        self.parent.title("Canvas Test")
+        self.parent.grid_rowconfigure(1,weight=1)
+        self.parent.grid_columnconfigure(1,weight=1)
+        self.parent.config(background="lavender")
+
+
+        # Define the different GUI widgets
+        #self.dose_label = tk.Label(self.parent, text = "Dose:")
+        #self.dose_entry = tk.Entry(self.parent)
+        #self.dose_label.grid(row = 0, column = 0, sticky = tk.W)
+        #self.dose_entry.grid(row = 0, column = 1)
+
+        #self.modified_label = tk.Label(self.parent, text = "Date Modified:")
+        #self.modified_entry = tk.Entry(self.parent)
+        #self.modified_label.grid(row = 1, column = 0, sticky = tk.W)
+        #self.modified_entry.grid(row = 1, column = 1)
+
+        #self.submit_button = tk.Button(self.parent, text = "Insert", command = self.insert_data)
+        #self.submit_button.grid(row = 2, column = 1, sticky = tk.W)
+        #self.exit_button = tk.Button(self.parent, text = "Exit", command = self.parent.quit)
+        #self.exit_button.grid(row = 0, column = 3)
+
+        # Set the treeview
+        self.tree = ttk.Treeview( self.parent)
+        self.tree.pack(expand=tk.YES, fill=tk.BOTH)
+        self.tree.heading('#0', text='State Table Tree View')
+        #self.tree.heading('#1', text='Dose')
+        #self.tree.heading('#2', text='Modification Date')
+        #self.tree.column('#1', stretch=tk.YES)
+        #self.tree.column('#2', stretch=tk.YES)
+        self.tree.column('#0', stretch=tk.YES, minwidth=500, width=700)
+        #self.tree.grid(row=1, sticky='nsew')
+        self.treeview = self.tree
+
+        self.tree.tag_configure('number', foreground='brown')
+        self.tree.tag_configure('screen', foreground='green')
+        self.tree.tag_configure('state', foreground='blue')
+        self.tree.tag_configure('undefined', foreground='red')
+        # Initialize the counter
+        self.i = 0
+
+
+    def insert_data(self, parent, name, level, tag):
+        """
+        Insertion method.
+        """
+        #print("inserting " + name + " to " + str(parent))
+        if parent == 'root':
+            id1 = self.treeview.insert(parent='', index=0, text=str(name), tags=('state'))
+            #print(id1)
+        else:
+            id1 = self.treeview.insert(parent=parent, index='end',text=str(name), tags=(tag))
+
+
+        # Increment counter
+        self.i = self.i + 1
+        return id1
+
+
+
 def printLevel(level):
     temp = ''
-    for i in range(level):
-        temp += '\t'
+    for i in range(level - 1):
+        temp += '|   '
+    if level != 0:
+        temp += '|___'
     return temp
 
-def printBlue(text, level):
-    print(printLevel(level) + 'b[27m'+text)
+def printBlue(app, parent, text, level):
+    global BLUE,RESET
+    #print(printLevel(level) + BLUE + text + RESET)
+    #print(printLevel(level) + text)
+    return app.insert_data(parent, text,level, 'state')
 
-def printRed(text, level):
-    print(printLevel(level) + 'r[27m'+text)
+def printRed(app, parent, text, level):
+    global RED,RESET
+    #print(printLevel(level) + RED + text + RESET)
+    #print(printLevel(level) + text)
+    return app.insert_data(parent, text,level, 'undefined')
 
-def printYellow(text,level):
-    print(printLevel(level) + 'y[27m'+text)
+def printYellow(app, parent, text,level):
+    global CYAN,RESET
+    #print(printLevel(level) + CYAN + text + RESET)
+    #print(printLevel(level) + text)
+    return app.insert_data(parent, text,level, 'number')
 
-def printGreen(text, level):
-    print(printLevel(level) + 'g[27m'+text)
+def printGreen(app, parent, text, level):
+    global GREEN, RESET
+    #print(printLevel(level) + GREEN + text + RESET)
+    #print(printLevel(level) + text)
+    return app.insert_data(parent, text, level, 'screen')
+
+def printRoot(app, text, level):
+    global GREEN, RESET
+    #print(printLevel(level) + GREEN + text + RESET)
+    #print(printLevel(level) + text)
+    return app.insert_data('root', text, level, 'state')
 
 def markPrinted(name):
     global printed
     printed[name] = 1
 
-def printState(state, level):
+def printState(app, parent, state, level):
     global statetable, printed
     temp = None
     types = None
@@ -256,40 +365,46 @@ def printState(state, level):
         types = statetable.stype[state.sttype].paramlist
         i = 0
         for p in state.stparamlist:
+            printed[state.stname] = True
             if types[i] == 'state':
                 try:
                     temp = printed[p]
+                    pid = printBlue(app, parent, p, level + 1)
+                    if str(state).lower != "null":
+                        if not printed[p]:
+                            printState(app, pid, statetable.stateList[p], level + 1)
+                except KeyError:
                     #printLevel(level + 1)
-                    printBlue(p, level + 1)
-                    if not printed[p]:
-                        printState(statetable.stateList[p], level + 1)
-                except 'KeyError':
-                    #printLevel(level + 1)
-                    printRed(p, level + 1)
+                    printRed(app, parent, p, level + 1)
                 #printBlue(p)
             elif types[i] == 'number':
                 #printLevel(level + 1)
-                printYellow(p, level + 1)
+                printYellow(app, parent, p, level + 1)
             elif types[i] == 'screen':
                 #printLevel(level + 1)
-                printGreen(p, level + 1)
+                printGreen(app, parent, p, level + 1)
             i += 1
-        printed[state.stname] = True
+
     except:
-        printRed('Exception', 0)
-        #raise
+        printRed(app, parent, 'Exception', 0)
+        raise
         return
 
-def printStateTable():
+def printStateTable(app):
     global statetable, printed
     level=0
     printed = dict()
     for s in statetable.stateList:
         printed[s] = False
     root = getRootState()
-    printBlue(root.stname, level)
+    parent = printRoot(app, root.stname, level)
     if root is not None:
-        printState(root, level)
-        printLevel(level)
+        printState(app, parent, root, level)
+        #printLevel(level)
 
-printStateTable()
+print("Invoking GUI...")
+root = tk.Tk()
+d = Begueradj(root)
+#d=0
+printStateTable(d)
+root.mainloop()
