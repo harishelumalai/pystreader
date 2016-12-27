@@ -1,9 +1,3 @@
-#This program will read a ATM statetable and displays it in TreeView with colors(For Screen, State, Number)
-#Still Under development
-#Author: Harish Elumalai
-#Date: 12/19/2016
-#Input file can be provided in the line 189
-
 import sys
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -48,6 +42,148 @@ class StateTable:
     def addStateToList(self, state):
         self.stateList[state.stname] = state
 
+class ScreenGUI:
+    FWIDTH = 20
+    FHEIGHT = 20
+    LabelArray = [[None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+            [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+            [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+            [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+            [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+            [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+            [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+            [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+            [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+            [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+            [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+            [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+            [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+            [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+            [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+            [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None], \
+        ]
+    def __init__(self, screen):
+        self.name = screen.scname
+        self.data = screen.scdata
+        self.clearScreen()
+        self.cursor = [ 0, 0]
+    def __init__(self, name, data):
+        self.name = name
+        self.data = data
+        self.clearScreen()
+        self.cursor = [0,0]
+    def clearScreen(self):
+        self.screenbuf = [['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+                ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+                ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+                ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+                ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+                ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+                ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+                ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+                ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+                ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+                ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+                ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+                ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+                ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+                ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+                ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''], \
+            ]
+    def addText(self, text, row, col):
+        for s in text:
+            if row < 16 and col < 32 :
+                self.screenbuf[row][col] = s
+            col+=1
+    """def addText(self, text):
+        self.addText(self.cursor[0], self.cursor[1], text)"""
+    def setCursor(self, row, col):
+        self.cursor = [row, col]
+    def DisplayText(self,parent, buf):
+        for i in range(16):
+            for j in range(32):
+                temp = tk.Label(parent, fg='white', width=1, text=buf[i][j],bg='black')
+                temp.place(x = (j * self.FWIDTH), y = (i * self.FHEIGHT), width = self.FWIDTH, height = self.FHEIGHT)
+                #temp.pack()
+                self.LabelArray[i][j] = temp
+    def showScreen(self):
+        view = tk.Tk()
+        view.title(self.name)
+        self.DisplayText(view, self.screenbuf)
+        view.geometry(str(self.FWIDTH*32)+"x"+str(self.FHEIGHT*16))
+        view.mainloop()
+    def processData(self):
+        print('Generating Screen:', self.name)
+        #print('Screen Data:', self.data)
+        d = self.data
+        head = 0
+        length = len(d)
+        command = ""
+        while head < length:
+            if d[head] == "@":
+                head += 1
+                command = d[head:head+2]
+                head += 2
+            else:
+                #head += 1
+                if head < length:
+                    s = d[head]
+                    text = ''
+                    while s != '@':
+                        text += s
+                        head += 1
+                        if head >= length:
+                            break
+                        else:
+                            s = d[head]
+                    self.addText(text, self.cursor[0], self.cursor[1])
+                    continue
+            #print("Command :", command)
+            if command == "FF":
+                self.clearScreen()
+            elif command == "SI":
+                #print("unparsed:", d[head:])
+                #print("Row:", d[head:head+2])
+                row = int(d[head:head+2])
+                head += 2
+                col = int(d[head:head+2])
+                head += 2
+                self.setCursor(row, col)
+            elif command == "CS":
+                head += 1
+                if head < length:
+                    s = d[head]
+                    text = ''
+                    while s != '@':
+                        text += s
+                        head += 1
+                        if head >= length:
+                            break
+                        else:
+                            s = d[head]
+                    self.addText(text, self.cursor[0], self.cursor[1])
+            else:
+                s = d[head]
+                while s != '@':
+                    head += 1
+                    if head >= length:
+                        break
+                    else:
+                        s = d[head]
+                #head += 1
+                """if head < length:
+                    s = d[head]
+                    text = ''
+                    while s != '@':
+                        text += s
+                        head += 1
+                        if head >= length:
+                            break
+                        else:
+                            s = d[head]
+                    self.addText(text, self.cursor[0], self.cursor[1])"""
+        self.showScreen()
+
 filestack = []
 curfd = None
 curSegment = None
@@ -65,11 +201,11 @@ stypeCount = 0
 screenCount = 0
 printed = None
 
-RED   = "\033[31m"
-BLUE  = "\033[34m"
-CYAN  = "\033[36m"
-GREEN = "\033[32m"
-RESET = "\033[0m"
+RED   = "\033[0;31m"
+BLUE  = "\033[0;34m"
+CYAN  = "\033[0;36m"
+GREEN = "\033[0;32m"
+RESET = "\033[0;0m"
 
 def filestackTest():
     global filestack
@@ -190,6 +326,8 @@ def __main__():
     f = "state.tbl"
     curfd = openFile(f)
     statetable = StateTable()
+    #statetable.
+    #while line = getLine() != -1:
     for line in curfd:
         line = line.strip()
         if line != '':
@@ -198,6 +336,8 @@ def __main__():
                     while line[-1] == '\\':
                         line = line.replace('\\', '')
                         line += curfd.readline().strip()
+                #process line here
+                #print(line)
                 process(line)
     curfd.close()
     print("Parsing sucessful!")
@@ -237,11 +377,18 @@ def getRootState():
             return statetable.stateList[state]
     return None
 
+def createViewer(name, data):
+    s = ScreenGUI(name, data)
+    #s = ScreenGUI("scr","@SO670@ES[060z@SO671@ES[060z@SO672@ES[060z@SO679@ES[020z@SO674@ES[060z@SO675@ES[060z@SO679@ES[020z@SO676@ES[060z@SO677@ES[060z@SO678@ES[060z@SO679@ES[020z")
+
+    s.processData()
+
 
 class Begueradj(tk.Frame):
     '''
     classdocs
     '''
+    global statetable
     def __init__(self, parent):
         '''
         Constructor
@@ -292,6 +439,8 @@ class Begueradj(tk.Frame):
         self.tree.tag_configure('screen', foreground='green')
         self.tree.tag_configure('state', foreground='blue')
         self.tree.tag_configure('undefined', foreground='red')
+
+        self.tree.bind("<Double-1>", self.OnDoubleClick)
         # Initialize the counter
         self.i = 0
 
@@ -312,6 +461,16 @@ class Begueradj(tk.Frame):
         self.i = self.i + 1
         return id1
 
+    """def doubleClick_Screen(self, event):
+        self.tree"""
+    def OnDoubleClick(self, event):
+        item = self.tree.selection()[0]
+        if self.tree.item(item, "tags")[0] == "screen":
+            scr_name = self.tree.item(item,"text")
+            for scr in statetable.screenList:
+                if scr.scname == scr_name:
+                    createViewer(scr_name, scr.scdata)
+            #print("you clicked on", self.tree.item(item,"tags"))
 
 
 def printLevel(level):
@@ -369,7 +528,9 @@ def printState(app, parent, state, level):
             if types[i] == 'state':
                 try:
                     temp = printed[p]
-                    pid = printBlue(app, parent, p, level + 1)
+                    #for "state_name (state type)"
+                    tp = p + " (" + statetable.stateList[p].sttype + ")"
+                    pid = printBlue(app, parent, tp, level + 1)
                     if str(state).lower != "null":
                         if not printed[p]:
                             printState(app, pid, statetable.stateList[p], level + 1)
@@ -379,6 +540,7 @@ def printState(app, parent, state, level):
                 #printBlue(p)
             elif types[i] == 'number':
                 #printLevel(level + 1)
+
                 printYellow(app, parent, p, level + 1)
             elif types[i] == 'screen':
                 #printLevel(level + 1)
@@ -397,11 +559,13 @@ def printStateTable(app):
     for s in statetable.stateList:
         printed[s] = False
     root = getRootState()
-    parent = printRoot(app, root.stname, level)
+    parent = printRoot(app, root.stname + " (" + root.sttype + ")", level)
+    #parent = printRoot(app, root.stname, level)
     if root is not None:
         printState(app, parent, root, level)
         #printLevel(level)
-
+print("Generating CSV...")
+writeToCSV("statetable.csv")
 print("Invoking GUI...")
 root = tk.Tk()
 d = Begueradj(root)
