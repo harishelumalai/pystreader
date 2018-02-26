@@ -5,11 +5,7 @@ module.exports = function(server, options) {
         return crypto.createHash('sha256').update(pwd).digest('hex');
     };
     
-    const create = function(request, reply) {
-        
-        if (request.auth.isAuthenticated) {
-            return reply.continue();
-        }
+    const create_user = function(request, reply) {
 
         let message;
         let username;
@@ -17,6 +13,10 @@ module.exports = function(server, options) {
         let repassword;
         let checked = false;
         let processing = true;
+        let created = false;
+        let called = false;
+        
+        console.log('inside create function');
         
         let createForm = function(reply) {
             return reply('<!DOCTYPE html>' +
@@ -29,9 +29,10 @@ module.exports = function(server, options) {
                 '<body>' +
                 '<center>' +
                 '<div class="container" style="width: 20%;margin-left: auto;margin-right:auto;margin-top: 10%;">' +
-                '<h1 style="background-color: #e8488b"><img width="60%" src="./kibana.png"></h1>' +
-                (message ? '<h3>' + message + '</h3><br/>' : '') +
-                '<form id="create-form" method="post" action="/create">' +
+                '<h1 style="background-color: #e8488b"><img width="60%" src="/bundles/0cebf3d61338c454670b1c5bdf5d6d8d.svg"></h1>' +
+                (message ? '<h5>' + message + '</h5>' : '') +
+                (created ? '<h3><a href="/login">Login</a></h3>' : '') +
+                '<form id="create-form" method="get" action="/create">' +
                 '<div class="form-group inner-addon left-addon">' +
                 '<input type="text" style="margin-bottom:8px;font-size: 1.25em;height: auto;" name="username" placeholder="Username" class="form-control">' +
                 '<input type="password" style="margin-bottom:8px;font-size: 1.25em;height: auto;" name="password" placeholder="Password" class="form-control">' +
@@ -53,22 +54,36 @@ module.exports = function(server, options) {
         } else if (request.method === 'get') {
             username = request.query.username;
             password = request.query.password;
-            repassword = request.payload.confirm_password;
+            repassword = request.query.confirm_password;
         }
 
-        if (!username && !password && !repassword && password !== repassword) {
+        if (!username && !password && !repassword) {
             processing = false;
         }
 
         if (username || password || repassword) {
+            
+            if(password !== repassword)
+            {
+                console.log("Password mismatch.");
+                message = 'Password mismatch';
+                if(!called) {
+                    called = true;
+                    createForm(reply);
+                }
+            }
+            
             //commenting for now. db doesnt have enc. pwd
             //let encPass = encode(password);
 
             //const { callWithRequest } = server.plugins.elasticsearch.getCluster('elasticsearch');
+            
+            
+            
             const Cluster = server.plugins.elasticsearch.getCluster('data');
             
             //Check username availability
-            Cluster.callWithRequest(request, 'request', {
+            Cluster.callWithRequest(request, 'search', {
                 index: "users", //'users' index for testing. uname=admin,pwd=admin
                 allowNoIndices: false,
                 body: {
@@ -80,6 +95,7 @@ module.exports = function(server, options) {
                     }
                 }
             }).then(res => {
+                console.log('first then');
                 if (res.hits.total == 0) {
                         checked = true;
 			            console.log("Username available");
@@ -91,24 +107,36 @@ module.exports = function(server, options) {
                                 "password" : password
                             }
                         }).then(res1 => {
-                            
+                                console.log('second then');
                                 processing = true;
                                 message = 'New user created successfully.';
-                                loginForm(reply);
+                                created = true;
+                                createForm(reply);
                             }, 
                         function(error) { console.log('error in insertion'); message='error in insert'; createForm(reply);}
                         );
                         
                     } else {
+                        console.log('already taken');
                         message = 'Username already taken.';
-                        createForm(reply);
+                        if(!called)
+                        {
+                            called = true;
+                            createForm(reply);
+                        }
                     }
             },
             function(error) {
                     checked = false;
                     message = 'Username already taken.(error)';
-                    createForm(reply);
+                    if(!called)
+                    {
+                        called = true;
+                        createForm(reply);
+                    }
                 });
+                
+                
 
         } else if (request.method === 'post') {
             processing = false;
@@ -116,6 +144,7 @@ module.exports = function(server, options) {
         }
 
         if (!checked && !processing) {
+            console.log('Default create user');
             createForm(reply);
         }
         
@@ -144,17 +173,17 @@ module.exports = function(server, options) {
                 '<body>' +
                 '<center>' +
                 '<div class="container" style="width: 20%;margin-left: auto;margin-right:auto;margin-top: 10%;">' +
-                '<h1 style="background-color: #e8488b"><img width="60%" src="bundles/src/ui/public/images/kibana.svg"></h1>' +
-                (message ? '<h3>' + message + '</h3><br/>' : '') +
-                '<form id="login-form" method="post" action="/login">' +
+                '<h1 style="background-color: #e8488b"><img width="60%" src="/bundles/0cebf3d61338c454670b1c5bdf5d6d8d.svg"></h1>' +
+                (message ? '<h5>' + message + '</h5><br/>' : '') +
+                '<form id="login-form" method="get" action="/login">' +
                 '<div class="form-group inner-addon left-addon">' +
                 '<input type="text" style="margin-bottom:8px;font-size: 1.25em;height: auto;" name="username" placeholder="Username" class="form-control">' +
                 '<input type="password" style="font-size: 1.25em;height: auto;" name="password" placeholder="Password" class="form-control">' +
                 '</div><div style="width:200px;margin-left:auto;margin-right:auto;">' +
                 '<input type="submit" value="Login" class="btn btn-default login" style="width: 80%;font-size: 1.5em;">' +
-                '<a href="/create"></a>' +
                 '</div>' +
                 '</form>' +
+                '<h3><a href="create">Create</a></h3>' +
                 '</div>' +
                 '</center>' +
                 '</body>' +
@@ -304,7 +333,7 @@ module.exports = function(server, options) {
                 method: ['GET','POST'],
                 path: '/create',
                 config: {
-                    handler: create,
+                    handler: create_user,
                     auth: {
                         mode: 'try'
                     },
