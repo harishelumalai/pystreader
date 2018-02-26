@@ -44,6 +44,7 @@ module.exports = function(server, options) {
                 '</center>' +
                 '</body>' +
                 '</html>');
+        }
             
         if (request.method === 'post') {
             username = request.payload.username;
@@ -91,11 +92,11 @@ module.exports = function(server, options) {
                             }
                         }).then(res1 => {
                             
-                            processing = true;
-                            message = 'New user created successfully.';
-                            loginForm(reply);
-                        }, 
-                        function(error) { console.log.('error in insertion'); message='error in insert'; createForm(reply);}
+                                processing = true;
+                                message = 'New user created successfully.';
+                                loginForm(reply);
+                            }, 
+                        function(error) { console.log('error in insertion'); message='error in insert'; createForm(reply);}
                         );
                         
                     } else {
@@ -151,6 +152,7 @@ module.exports = function(server, options) {
                 '<input type="password" style="font-size: 1.25em;height: auto;" name="password" placeholder="Password" class="form-control">' +
                 '</div><div style="width:200px;margin-left:auto;margin-right:auto;">' +
                 '<input type="submit" value="Login" class="btn btn-default login" style="width: 80%;font-size: 1.5em;">' +
+                '<a href="/create"></a>' +
                 '</div>' +
                 '</form>' +
                 '</div>' +
