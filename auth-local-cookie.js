@@ -2,6 +2,7 @@ const crypto = require('crypto');
 
 module.exports = function(server, options) {
     const encode = function(pwd) {
+        console.log("Encoding password");
         return crypto.createHash('sha256').update(pwd).digest('hex');
     };
     
@@ -40,6 +41,7 @@ module.exports = function(server, options) {
                 '</div><div style="width:200px;margin-left:auto;margin-right:auto;">' +
                 '<input type="submit" value="Create User" class="btn btn-default login" style="width: 80%;font-size: 1.5em;">' +
                 '</div>' +
+                '<a href="/login">Login</a>' +
                 '</form>' +
                 '</div>' +
                 '</center>' +
@@ -74,11 +76,9 @@ module.exports = function(server, options) {
             }
             
             //commenting for now. db doesnt have enc. pwd
-            //let encPass = encode(password);
-
+            let encPass = encode(password);
+            password = encPass;
             //const { callWithRequest } = server.plugins.elasticsearch.getCluster('elasticsearch');
-            
-            
             
             const Cluster = server.plugins.elasticsearch.getCluster('data');
             
@@ -138,10 +138,10 @@ module.exports = function(server, options) {
                 
                 
 
-        } else if (request.method === 'post') {
+        } /*else if (request.method === 'post') {
             processing = false;
             message = 'Missing username or password';
-        }
+        }*/
 
         if (!checked && !processing) {
             console.log('Default create user');
@@ -153,9 +153,10 @@ module.exports = function(server, options) {
     const login = function(request, reply) {
 
         if (request.auth.isAuthenticated) {
+            console.log("user already logged in. Continue.")
             return reply.continue();
         }
-
+        console.log("Login page.");
         let message;
         let username;
         let password;
@@ -183,7 +184,7 @@ module.exports = function(server, options) {
                 '<input type="submit" value="Login" class="btn btn-default login" style="width: 80%;font-size: 1.5em;">' +
                 '</div>' +
                 '</form>' +
-                '<h3><a href="create">Create</a></h3>' +
+                '<h4><a href="create">Create User</a></h4>' +
                 '</div>' +
                 '</center>' +
                 '</body>' +
@@ -202,16 +203,20 @@ module.exports = function(server, options) {
         }
 
         if (!username && !password) {
+            console.log("!username && !password");
             processing = false;
         }
 
         if (username || password) {
             //commenting for now. db doesnt have enc. pwd
-            //let encPass = encode(password);
+            let encPass = encode(password);
+            password = encPass;
+            
+            console.log("username || password");
 
             //const { callWithRequest } = server.plugins.elasticsearch.getCluster('elasticsearch');
             const Cluster = server.plugins.elasticsearch.getCluster('data');
-                Cluster.callWithRequest(request, 'search', {
+            Cluster.callWithRequest(request, 'search', {
                 index: "users", //'users' index for testing. uname=admin,pwd=admin
                 allowNoIndices: false,
                 body: {
@@ -223,10 +228,11 @@ module.exports = function(server, options) {
                     }
                 }
             }).then(res => {
-		//Change password into encPass
+		      //Change password into encPass
+                console.log("Checking password.");
                 if (res.hits.hits[0] && res.hits.hits[0]._source.password == password) {
                         checked = true;
-			console.log("User authenticated");
+                        console.log("User authenticated");
                         let uuid = 1;
                         const sid = String(++uuid);
                         request.server.app.cache.set(sid, {
@@ -253,10 +259,10 @@ module.exports = function(server, options) {
                     loginForm(reply);
                 });
 
-        } else if (request.method === 'post') {
+        } /*else if (request.method === 'post') {
             processing = false;
             message = 'Missing username or password';
-        }
+        }*/
 
         if (!checked && !processing) {
             loginForm(reply);
@@ -280,7 +286,7 @@ module.exports = function(server, options) {
 
         const cache = server.cache({
             segment: 'sessions',
-            expiresIn: 60 * 1000	//1 min
+            expiresIn: 10 * 60 * 1000	//10 min
         });
         server.app.cache = cache;
 
